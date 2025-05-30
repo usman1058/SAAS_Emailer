@@ -1,7 +1,55 @@
-run these commands in terminal and enjoy
+# 📧 Bulk Email Sender with Attachment and Personalization
+
+This is a Django-based email-sending tool that allows you to send personalized emails in bulk using an Excel file. Each email can include dynamic name insertion (`{{name}}`), attachments (PDF/images), and duplicate prevention using a unique hash. It supports a kill switch to stop sending at any time.
+
+---
+
+## 🚀 Features
+
+- ✅ Send bulk emails using an Excel (.xlsx) file
+- ✅ Personalize emails using `{{name}}` placeholder
+- ✅ Optional file attachment (PDF, Image, etc.)
+- ✅ Skip duplicate messages (via hashing)
+- ✅ Stop sending in real-time with a kill switch
+- ✅ Reconnect on SMTP failure
+- ✅ Gmail SMTP supported
 
 
->> python -m venv env
->> env\Scripts\activate 
->> pip install -r requirements.txt
->>  python manage.py runserver    
+## 📥 How to Use
+
+1: Run these commands in the terminal
+
+    python -m venv env
+    env\Scripts\activate 
+    pip install -r requirements.txt
+    python manage.py runserver    
+
+
+
+ 2: Open the form
+    Visit:
+
+        http://127.0.0.1:8000/
+
+    You will see a form like:
+
+        Sender Email (e.g. yourgmail@gmail.com)
+
+        Password (App password recommended for Gmail)
+
+        Subject
+
+        Message ({{name}} will be replaced by the name from Excel)
+
+        Excel file (must have column named Email and optionally Name)
+
+        Attachment (optional)
+
+
+
+## ⚠️ Important Notes
+
+
+    Gmail limits sending to 500 emails/day for free accounts.
+
+    Repeated failures may trigger Gmail security lockouts.
