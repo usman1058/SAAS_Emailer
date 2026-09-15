@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-#4+s2ol$eyo!!k#bznv=p2-rmhhq7$ylj@-u!ywo7y&3mz(kj8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    https://saas-emailer.vercel.app/,
+www.saas-emailer.vercel.app/,
+saas-emailer.vercel.app/
+]
 
 
 # Application definition
