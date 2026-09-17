@@ -24,7 +24,15 @@ logger = logging.getLogger(__name__)
 def lead_search(request):
     """Display search form and recent jobs."""
     recent_jobs = SearchJob.objects.all()[:20]
-    return render(request, 'leads/search.html', {'recent_jobs': recent_jobs})
+    popular_categories = [
+        'plumber', 'electrician', 'cafe', 'hair salon', 'restaurant',
+        'dentist', 'lawyer', 'gym', 'car repair', 'real estate agent',
+        'accountant', 'doctor', 'vet', 'pharmacy', 'bakery'
+    ]
+    return render(request, 'leads/search.html', {
+        'recent_jobs': recent_jobs,
+        'popular_categories': popular_categories
+    })
 
 
 @require_POST

@@ -1,93 +1,220 @@
 {% extends 'base.html' %}
 
-{% block title %}Lead Finder - Find Businesses Without Websites{% endblock %}
+{% block title %}Lead Finder - SAAS Emailer{% endblock %}
 
 {% block content %}
-<div class="container" role="main" aria-label="Lead Finder">
-    <div class="card shadow-lg mb-4">
-        <div class="card-header">
-            <h3><span>🔍</span> Find Local Business Leads</h3>
-        </div>
-        <div class="card-body">
-            <form method="post" action="{% url 'leads:search_submit' %}" id="searchForm">
-                {% csrf_token %}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Leeds" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="country" class="form-label">Country (optional)</label>
-                        <input type="text" class="form-control" id="country" name="country" placeholder="e.g., UK, Germany, USA">
-                        <div class="form-text">Helps with phone number classification and geocoding accuracy.</div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="categories" class="form-label">Categories <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="categories" name="categories" rows="3" placeholder="plumber, electrician, cafe, hair salon" required></textarea>
-                    <div class="form-text">
-                        Comma-separated list. Examples: <code>plumber</code>, <code>hair salon</code>, <code>cafe</code>, <code>restaurant</code>, <code>dentist</code>, <code>lawyer</code>, <code>gym</code>, <code>car repair</code>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-success">🔍 Search for Leads</button>
-            </form>
-        </div>
+<!-- Hero/Search Section -->
+<div class="section-card animate-in">
+    <div class="section-header">
+        <h2><i class="bi bi-search-heart"></i> Lead Finder</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-custom">
+            <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
     </div>
+    <div class="section-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-section">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-geo-alt me-2"></i> Search for Local Business Leads</h4>
+                    <p class="text-muted mb-4">
+                        Find businesses without websites using OpenStreetMap data. 
+                        Get phone numbers, classify mobile vs landline, and export to CSV/Excel/HTML.
+                    </p>
 
-    {% if recent_jobs %}
-    <div class="card shadow-lg">
-        <div class="card-header">
-            <h3 class="mb-0">Recent Searches</h3>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Location</th>
-                            <th>Categories</th>
-                            <th>Status</th>
-                            <th>Found</th>
-                            <th>No Website</th>
-                            <th>Priority</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for job in recent_jobs %}
-                        <tr>
-                            <td>#{{ job.id }}</td>
-                            <td>{{ job.city }}{% if job.country %}, {{ job.country }}{% endif %}</td>
-                            <td>{{ job.categories|join:", " }}</td>
-                            <td>
-                                <span class="badge badge-{{ job.status }}">
-                                    {{ job.get_status_display }}
-                                </span>
-                            </td>
-                            <td>{{ job.total_found }}</td>
-                            <td>{{ job.no_website_count }}</td>
-                            <td>{{ job.priority_count }}</td>
-                            <td>{{ job.created_at|date:"M d, H:i" }}</td>
-                            <td>
-                                {% if job.status == 'completed' %}
-                                    <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-primary">View Results</a>
-                                {% elif job.status == 'running' %}
-                                    <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-info">View Progress</a>
-                                {% elif job.status == 'pending' %}
-                                    <a href="{% url 'leads:search_run' job.id %}" class="btn btn-sm btn-success">Run Search</a>
-                                {% else %}
-                                    <span class="text-muted">Failed</span>
-                                {% endif %}
-                            </td>
-                        </tr>
+                    <form method="post" action="{% url 'leads:search_submit' %}" id="searchForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Leeds, New York, Tokyo" required>
+                                <div class="form-text">Required for geocoding</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="country" class="form-label">Country (optional)</label>
+                                <input type="text" class="form-control" id="country" name="country" placeholder="e.g., UK, USA, Germany, Japan">
+                                <div class="form-text">Improves phone classification & geocoding accuracy</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="categories" class="form-label">Categories <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="categories" name="categories" rows="3" placeholder="plumber, electrician, cafe, hair salon, restaurant, dentist" required></textarea>
+                            <div class="form-text">
+                                Comma-separated. Popular: 
+                                <code>plumber</code>, <code>electrician</code>, <code>cafe</code>, 
+                                <code>hair salon</code>, <code>restaurant</code>, <code>dentist</code>, 
+                                <code>lawyer</code>, <code>gym</code>, <code>car repair</code>, <code>real estate</code>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary-custom btn-lg btn-icon flex-grow-1">
+                                <i class="bi bi-search-heart"></i>
+                                Find Leads
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary-custom btn-lg">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Popular Categories Quick Pick -->
+                <div class="mt-5">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge me-2"></i> Popular Categories</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for cat in popular_categories %}
+                        <button type="button" class="btn btn-sm btn-outline-custom category-btn" data-category="{{ cat }}">
+                            {{ cat }}
+                        </button>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
+                    <div class="form-text mt-2">Click to add/remove categories</div>
+                </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
+
+<!-- Recent Searches -->
+<div class="section-card animate-in delay-1">
+    <div class="section-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-clock-history"></i> Recent Searches</h2>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">{{ recent_jobs|length }} searches</span>
+    </div>
+    <div class="section-body p-0">
+        {% if recent_jobs %}
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>Categories</th>
+                        <th>Status</th>
+                        <th>Found</th>
+                        <th>No Website</th>
+                        <th>Priority</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in recent_jobs %}
+                    <tr>
+                        <td><code>#{{ job.id }}</code></td>
+                        <td>
+                            <strong>{{ job.city }}</strong>
+                            {% if job.country %}<br><small class="text-muted">{{ job.country }}</small>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for cat in job.categories %}
+                                <span class="badge bg-light text-dark">{{ cat }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ job.status }} badge-status">
+                                {{ job.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="fw-semibold">{{ job.total_found }}</td>
+                        <td class="text-warning fw-semibold">{{ job.no_website_count }}</td>
+                        <td class="text-danger fw-semibold">{{ job.priority_count }}</td>
+                        <td class="text-muted small">{{ job.created_at|date:"M d, H:i" }}</td>
+                        <td>
+                            {% if job.status == 'completed' %}
+                                <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-primary-custom">
+                                    <i class="bi bi-eye"></i> Results
+                                </a>
+                            {% elif job.status == 'running' %}
+                                <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-hourglass-split"></i> Progress
+                                </a>
+                            {% elif job.status == 'pending' %}
+                                <a href="{% url 'leads:search_run' job.id %}" class="btn btn-sm btn-success">
+                                    <i class="bi bi-play-fill"></i> Run
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">Failed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-search-heart"></i>
+            <h4>No searches yet</h4>
+            <p class="text-muted">Start your first lead search above</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="section-card animate-in delay-2">
+    <div class="section-header">
+        <h2><i class="bi bi-info-circle"></i> How It Works</h2>
+    </div>
+    <div class="section-body">
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="feature-icon email mx-auto mb-3"><i class="bi bi-geo-alt"></i></div>
+                <h5>1. Search</h5>
+                <p class="text-muted small">Enter city, country, and categories to search OpenStreetMap</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="feature-icon leads mx-auto mb-3"><i class="bi bi-building"></i></div>
+                <h5>2. Discover</h5>
+                <p class="text-muted small">Find businesses with phone numbers and website status</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #198754, #157347);" class="mx-auto mb-3"><i class="bi bi-whatsapp"></i></div>
+                <h5>3. Classify</h5>
+                <p class="text-muted small">Mobile vs landline detection with WhatsApp wa.me links</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #dc3545, #bb2d3b);" class="mx-auto mb-3"><i class="bi bi-download"></i></div>
+                <h5>4. Export</h5>
+                <p class="text-muted small">CSV, Excel (4 sheets), or interactive HTML reports</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Category quick-pick buttons
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const category = this.dataset.category;
+            const textarea = document.getElementById('categories');
+            const current = textarea.value.split(',').map(c => c.trim()).filter(c => c);
+            
+            if (current.includes(category)) {
+                // Remove
+                const index = current.indexOf(category);
+                current.splice(index, 1);
+                this.classList.remove('btn-primary-custom');
+                this.classList.add('btn-outline-custom');
+            } else {
+                // Add
+                current.push(category);
+                this.classList.remove('btn-outline-custom');
+                this.classList.add('btn-primary-custom');
+            }
+            
+            textarea.value = current.join(', ');
+        });
+    });
+
+    // Auto-focus city input
+    document.getElementById('city').focus();
+</script>
 {% endblock %}

@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SAAS Emailer{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="section-card animate-in">
+    <div class="section-header">
+        <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'email_panel' %}" class="btn btn-primary-custom btn-icon">
+                <i class="bi bi-send-fill"></i>
+                Compose Email
+            </a>
+            <a href="{% url 'leads:search' %}" class="btn btn-outline-custom btn-icon">
+                <i class="bi bi-search-heart"></i>
+                Find Leads
+            </a>
+        </div>
+    </div>
+    <div class="section-body">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h3 class="fw-bold mb-3" style="color: var(--dark);">Welcome to SAAS Emailer</h3>
+                <p class="lead text-muted mb-4">
+                    Your all-in-one platform for personalized bulk email campaigns and intelligent lead generation.
+                    Send targeted emails at scale and discover local businesses without websites using OpenStreetMap data.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'email_panel' %}" class="btn btn-primary-custom btn-lg btn-icon">
+                        <i class="bi bi-send-fill"></i>
+                        Start Email Campaign
+                    </a>
+                    <a href="{% url 'leads:search' %}" class="btn btn-secondary-custom btn-lg btn-icon">
+                        <i class="bi bi-search-heart"></i>
+                        Find New Leads
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <i class="bi bi-graph-up-arrow" style="font-size: 12rem; color: var(--primary); opacity: 0.15;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="section-card animate-in delay-1">
+    <div class="section-header">
+        <h2><i class="bi bi-bar-chart-fill"></i> Quick Stats</h2>
+    </div>
+    <div class="section-body">
+        <div class="stats-grid">
+            {% if email_stats %}
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="bi bi-send-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ email_stats.total_jobs }}</h3>
+                    <p>Email Campaigns</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ email_stats.total_sent }}</h3>
+                    <p>Emails Sent</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ email_stats.total_failed }}</h3>
+                    <p>Failed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="bi bi-skip-forward-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ email_stats.total_skipped }}</h3>
+                    <p>Skipped (Dupes/Invalid)</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="bi bi-send-fill"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Email Campaigns</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="bi bi-check-circle-fill"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Emails Sent</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="bi bi-x-circle-fill"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Failed</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="bi bi-skip-forward-fill"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Skipped</p></div>
+            </div>
+            {% endif %}
+
+            {% if leads_stats %}
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="bi bi-search-heart"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ leads_stats.total_searches }}</h3>
+                    <p>Lead Searches</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ leads_stats.total_found }}</h3>
+                    <p>Businesses Found</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="bi bi-globe2"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ leads_stats.no_website }}</h3>
+                    <p>No Website Leads</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ leads_stats.priority }}</h3>
+                    <p>Priority (Mobile + No Site)</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="stat-card">
+                <div class="stat-icon info"><i class="bi bi-search-heart"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Lead Searches</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="bi bi-building"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Businesses Found</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="bi bi-globe2"></i></div>
+                <div class="stat-content"><h3>0</h3><p>No Website Leads</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="bi bi-lightning-charge"></i></div>
+                <div class="stat-content"><h3>0</h3><p>Priority Leads</p></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features Overview -->
+<div class="section-card animate-in delay-2">
+    <div class="section-header">
+        <h2><i class="bi bi-stars"></i> Core Features</h2>
+    </div>
+    <div class="section-body">
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon email">
+                    <i class="bi bi-send-fill"></i>
+                </div>
+                <h3>Bulk Email Sender</h3>
+                <p>Send personalized emails at scale with {{name}} placeholders, attachments, duplicate prevention, and real-time progress tracking.</p>
+                <a href="{% url 'email_panel' %}" class="btn btn-primary-custom btn-icon">
+                    <i class="bi bi-arrow-right"></i>
+                    Open Email Sender
+                </a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon leads">
+                    <i class="bi bi-search-heart"></i>
+                </div>
+                <h3>Lead Finder (OSM)</h3>
+                <p>Discover local businesses without websites using OpenStreetMap. Get phone numbers, classify mobile vs landline, and export to CSV/Excel/HTML.</p>
+                <a href="{% url 'leads:search' %}" class="btn btn-primary-custom btn-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                    <i class="bi bi-arrow-right"></i>
+                    Find Leads
+                </a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #198754, #157347);">
+                    <i class="bi bi-whatsapp"></i>
+                </div>
+                <h3>WhatsApp Verification</h3>
+                <p>Automatically classify phone numbers as mobile or landline using libphonenumber. Get one-click wa.me links to verify WhatsApp availability.</p>
+                <a href="{% url 'leads:search' %}" class="btn btn-primary-custom btn-icon" style="background: linear-gradient(135deg, #198754, #157347);">
+                    <i class="bi bi-arrow-right"></i>
+                    Try Lead Finder
+                </a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #dc3545, #bb2d3b);">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                </div>
+                <h3>Multi-Format Export</h3>
+                <p>Export leads to CSV (filtered), Excel (4 sheets: All, No Website, Priority, Has Website), and interactive HTML reports with filtering.</p>
+                <a href="{% url 'leads:search' %}" class="btn btn-primary-custom btn-icon" style="background: linear-gradient(135deg, #dc3545, #bb2d3b);">
+                    <i class="bi bi-arrow-right"></i>
+                    Export Leads
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <!-- Recent Email Jobs -->
+    <div class="col-lg-6 mb-4">
+        <div class="section-card animate-in delay-3 h-100">
+            <div class="section-header d-flex justify-content-between align-items-center">
+                <h2><i class="bi bi-clock-history"></i> Recent Email Campaigns</h2>
+                <a href="{% url 'email_panel' %}" class="btn btn-sm btn-outline-custom">View All</a>
+            </div>
+            <div class="section-body p-0">
+                {% if recent_email_jobs %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Sent</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in recent_email_jobs %}
+                            <tr>
+                                <td><code>#{{ job.id }}</code></td>
+                                <td>{{ job.subject|truncatechars:35 }}</td>
+                                <td>
+                                    <span class="badge badge-{{ job.status }} badge-status">
+                                        <i class="bi {% if job.status == 'running' %}bi-play-circle{% elif job.status == 'completed' %}bi-check-circle{% elif job.status == 'failed' %}bi-x-circle{% elif job.status == 'stopped' %}bi-stop-circle{% else %}bi-hourglass{% endif %}"></i>
+                                        {{ job.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress-custom" style="width: 100px;">
+                                        <div class="progress-bar" style="width: {{ job.progress_percent }}%"></div>
+                                    </div>
+                                    <small class="ms-2">{{ job.progress_percent }}%</small>
+                                </td>
+                                <td class="text-success fw-semibold">{{ job.sent_count }}</td>
+                                <td class="text-muted small">{{ job.created_at|date:"M d, H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-send"></i>
+                    <h4>No email campaigns yet</h4>
+                    <p class="text-muted">Create your first campaign to see it here</p>
+                    <a href="{% url 'email_panel' %}" class="btn btn-primary-custom btn-icon mt-3">
+                        <i class="bi bi-plus-circle"></i>
+                        Create Campaign
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Lead Searches -->
+    <div class="col-lg-6 mb-4">
+        <div class="section-card animate-in delay-4 h-100">
+            <div class="section-header d-flex justify-content-between align-items-center">
+                <h2><i class="bi bi-search-heart"></i> Recent Lead Searches</h2>
+                <a href="{% url 'leads:search' %}" class="btn btn-sm btn-outline-custom">View All</a>
+            </div>
+            <div class="section-body p-0">
+                {% if recent_lead_jobs %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Location</th>
+                                <th>Categories</th>
+                                <th>Status</th>
+                                <th>Found</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in recent_lead_jobs %}
+                            <tr>
+                                <td><code>#{{ job.id }}</code></td>
+                                <td>
+                                    <strong>{{ job.city }}</strong>
+                                    {% if job.country %}<br><small class="text-muted">{{ job.country }}</small>{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ job.categories|join:", " }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ job.status }} badge-status">
+                                        {{ job.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="fw-semibold">{{ job.total_found }}</td>
+                                <td class="text-warning fw-semibold">{{ job.priority_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-search-heart"></i>
+                    <h4>No lead searches yet</h4>
+                    <p class="text-muted">Find your first batch of leads</p>
+                    <a href="{% url 'leads:search' %}" class="btn btn-primary-custom btn-icon mt-3" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="bi bi-plus-circle"></i>
+                        Search Leads
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-card animate-in">
+    <div class="section-header">
+        <h2><i class="bi bi-lightning-charge"></i> Quick Actions</h2>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{% url 'email_panel' %}" class="btn btn-primary-custom w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4" style="min-height: 140px;">
+                    <i class="bi bi-send-fill" style="font-size: 2.5rem;"></i>
+                    <span class="mt-2 fw-semibold">Send Email Campaign</span>
+                    <small class="text-white-50">Compose & send bulk emails</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'leads:search' %}" class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4" style="background: linear-gradient(135deg, #6366f1, #4f46e5); min-height: 140px; color: white;">
+                    <i class="bi bi-search-heart" style="font-size: 2.5rem;"></i>
+                    <span class="mt-2 fw-semibold">Find New Leads</span>
+                    <small class="text-white-50">Search businesses on OSM</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'leads:search' %}" class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4" style="background: linear-gradient(135deg, #198754, #157347); min-height: 140px; color: white;">
+                    <i class="bi bi-download" style="font-size: 2.5rem;"></i>
+                    <span class="mt-2 fw-semibold">Export Leads</span>
+                    <small class="text-white-50">CSV, Excel, HTML reports</small>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin:index' %}" target="_blank" class="btn btn-secondary-custom w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4" style="min-height: 140px;">
+                    <i class="bi bi-gear" style="font-size: 2.5rem;"></i>
+                    <span class="mt-2 fw-semibold">Admin Panel</span>
+                    <small class="text-white-50">Manage users & settings</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

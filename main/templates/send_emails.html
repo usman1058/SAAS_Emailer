@@ -1,500 +1,410 @@
+{% extends 'base.html' %}
 {% load form_tags %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}Email Sender - SAAS Emailer{% endblock %}
 
-<head>
-    <meta charset="UTF-8" />
-    <title>Email Sender Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <style>
-        body {
-            background: #fff;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            margin: 0;
-            overflow-x: hidden;
-        }
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(246, 138, 10, 0.1);
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 40px auto 60px;
-            animation: fadeInUp 1s ease forwards;
-        }
+    .log-console {
+        background: #1a1a2e;
+        color: #e0e0e0;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        border-radius: 14px;
+        padding: 1.5rem;
+        height: 500px;
+        overflow-y: auto;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 0.85rem;
+        line-height: 1.7;
+    }
 
-        .card {
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            background: #fff;
-        }
+    .log-console::-webkit-scrollbar {
+        width: 8px;
+    }
+    .log-console::-webkit-scrollbar-track { background: #16213e; }
+    .log-console::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
 
-        .card-header {
-            background-color: #f68a0a;
-            color: #fff;
-            font-weight: 700;
-            font-size: 1.6rem;
-            letter-spacing: 1.2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 20px 0;
-        }
+    .log-line { margin-bottom: 0.25rem; opacity: 0; animation: fadeIn 0.3s ease forwards; }
+    .log-line.success { color: #69db7c; }
+    .log-line.error { color: #ff6b6b; }
+    .log-line.warning { color: #ffd93d; }
+    .log-line.info { color: #74c0fc; }
 
-        .card-header h3 {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .progress-custom {
+        height: 10px;
+        border-radius: 10px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+    .progress-custom .progress-bar {
+        border-radius: 10px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        transition: width 0.5s ease;
+    }
 
-        .card-header h3 span {
-            display: inline-block;
-            animation: bounce 2.5s infinite;
-            font-size: 1.8rem;
-        }
+    .stat-box {
+        text-align: center;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+    .stat-box .value { font-size: 2rem; font-weight: 800; color: var(--dark); }
+    .stat-box .label { font-size: 0.8rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .card-body {
-            display: flex;
-            gap: 24px;
-            position: relative;
-            padding: 24px;
-        }
+    .btn.loading { position: relative; color: transparent !important; pointer-events: none; }
+    .btn.loading::after {
+        content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%;
+        margin: -10px 0 0 -10px; border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .form-container {
-            flex: 1;
-            transition: flex-basis 0.5s ease;
-            min-width: 320px;
-        }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
 
-        .log-container {
-            width: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: width 0.5s ease, opacity 0.5s ease;
-        }
-
-        .log-container.active {
-            width: 400px;
-            opacity: 1;
-        }
-
-        label.form-label {
-            font-weight: 600;
-            color: #f68a0a;
-        }
-
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid #f68a0a;
-            padding: 10px 14px;
-            font-size: 1rem;
-            transition: border-color 0.4s ease, box-shadow 0.4s ease;
-        }
-
-        .form-control:focus {
-            border-color: #c76a00;
-            box-shadow: 0 0 12px rgba(246, 138, 10, 0.7);
-            outline: none;
-        }
-
-        button.btn-success,
-        button.btn-danger,
-        button.btn-secondary {
-            font-weight: 700;
-            padding: 12px 26px;
-            border-radius: 10px;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-            user-select: none;
-        }
-
-        button.btn-success {
-            background-color: #f68a0a;
-            border: none;
-            color: white;
-        }
-
-        button.btn-success:hover {
-            background-color: #c76a00;
-            transform: scale(1.06);
-            box-shadow: 0 12px 24px rgba(199, 106, 0, 0.6);
-            cursor: pointer;
-        }
-
-        button.btn-danger {
-            background-color: #dc3545;
-            border: none;
-            color: white;
-        }
-
-        button.btn-danger:hover {
-            background-color: #b02a37;
-            transform: scale(1.06);
-            box-shadow: 0 12px 24px rgba(176, 42, 55, 0.6);
-            cursor: pointer;
-        }
-
-        button.btn-secondary {
-            background-color: #6c757d;
-            border: none;
-            color: white;
-        }
-
-        button.btn-secondary:hover {
-            background-color: #5a6268;
-            transform: scale(1.06);
-            cursor: pointer;
-        }
-
-        #log {
-            background-color: #121212;
-            color: #eee;
-            font-family: 'Courier New', Courier, monospace;
-            border-radius: 12px;
-            padding: 18px;
-            height: 500px;
-            overflow-y: auto;
-            box-shadow: inset 0 0 18px #000;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            transition: background-color 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        #log:hover {
-            background-color: #1f1f1f;
-        }
-
-        h5 {
-            color: #f68a0a;
-            font-weight: 700;
-            margin-bottom: 18px;
-            letter-spacing: 1.1px;
-        }
-
-        .progress-bar-custom {
-            height: 8px;
-            border-radius: 4px;
-            background: #e9ecef;
-            overflow: hidden;
-        }
-
-        .progress-bar-custom .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f68a0a, #ffa500);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .job-history {
-            margin-top: 24px;
-        }
-
-        .job-history table {
-            font-size: 0.85rem;
-        }
-
-        .job-history th {
-            background: #f8f9fa;
-        }
-
-        .badge-running { background: #0dcaf0; color: #000; }
-        .badge-completed { background: #198754; }
-        .badge-stopped { background: #ffc107; color: #000; }
-        .badge-failed { background: #dc3545; }
-        .badge-pending { background: #6c757d; }
-
-        @media (max-width: 900px) {
-            .card-body {
-                flex-direction: column;
-            }
-
-            .log-container.active {
-                width: 100% !important;
-                height: 300px;
-                margin-top: 24px;
-                opacity: 1;
-            }
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .spinner-border-sm { width: 1rem; height: 1rem; }
-    </style>
-</head>
-
-<body>
-
-    <div class="container" role="main" aria-label="Bulk Email Sender Panel">
-        <div class="card shadow-lg">
-            <div class="card-header">
-                <h3>
-                    <span>📧</span> Bulk Email Sender
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="form-container">
-                    <!-- Form for Email Sending -->
+{% block content %}
+<div class="section-card animate-in">
+    <div class="section-header">
+        <h2><i class="bi bi-send-fill"></i> Email Sender</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-custom">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    <div class="section-body">
+        <div class="row g-4">
+            <!-- Form Section -->
+            <div class="col-lg-7">
+                <div class="form-section">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-pencil-square me-2"></i>Compose Campaign</h4>
+                    
                     <form id="emailForm" method="post" enctype="multipart/form-data" action="{% url 'send_emails' %}">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_sender_email" class="form-label">Sender Email</label>
-                            {{ form.sender_email|add_class:"form-control" }}
-                            {% if form.sender_email.errors %}
-                                <div class="text-danger small">{{ form.sender_email.errors }}</div>
-                            {% endif %}
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="id_sender_email" class="form-label">Sender Email</label>
+                                {{ form.sender_email|add_class:"form-control" }}
+                                {% if form.sender_email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.sender_email.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Your Gmail address (e.g., yourname@gmail.com)</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="id_sender_password" class="form-label">Sender Password</label>
+                                {{ form.sender_password|add_class:"form-control" }}
+                                {% if form.sender_password.errors %}
+                                    <div class="text-danger small mt-1">{{ form.sender_password.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Gmail App Password (not your regular password)</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="id_subject" class="form-label">Subject</label>
+                                {{ form.subject|add_class:"form-control" }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger small mt-1">{{ form.subject.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="id_message" class="form-label">Message</label>
+                                {{ form.message|add_class:"form-control" }}
+                                {% if form.message.errors %}
+                                    <div class="text-danger small mt-1">{{ form.message.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Use <code>{{name}}</code> placeholder for personalization (e.g., "Hi {{name}}, ...")</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="id_excel_file" class="form-label">Excel File <span class="text-danger">*</span></label>
+                                {{ form.excel_file|add_class:"form-control" }}
+                                {% if form.excel_file.errors %}
+                                    <div class="text-danger small mt-1">{{ form.excel_file.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Must have "Email" column. Optional "Name" column for personalization.</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="id_attachment" class="form-label">Attachment (optional)</label>
+                                {{ form.attachment|add_class:"form-control" }}
+                                {% if form.attachment.errors %}
+                                    <div class="text-danger small mt-1">{{ form.attachment.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Allowed: PDF, PNG, JPG, GIF, DOC, DOCX, TXT, CSV. Max 10 MB.</div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="id_sender_password" class="form-label">Sender Password</label>
-                            {{ form.sender_password|add_class:"form-control" }}
-                            {% if form.sender_password.errors %}
-                                <div class="text-danger small">{{ form.sender_password.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_subject" class="form-label">Subject</label>
-                            {{ form.subject|add_class:"form-control" }}
-                            {% if form.subject.errors %}
-                                <div class="text-danger small">{{ form.subject.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_message" class="form-label">Message</label>
-                            {{ form.message|add_class:"form-control" }}
-                            {% if form.message.errors %}
-                                <div class="text-danger small">{{ form.message.errors }}</div>
-                            {% endif %}
-                            <div class="form-text">Use <code>{{name}}</code> placeholder for personalization (e.g., "Hi {{name}}, ...")</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_excel_file" class="form-label">Excel File (with Email column)</label>
-                            {{ form.excel_file|add_class:"form-control" }}
-                            {% if form.excel_file.errors %}
-                                <div class="text-danger small">{{ form.excel_file.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_attachment" class="form-label">Attachment (optional)</label>
-                            {{ form.attachment|add_class:"form-control" }}
-                            {% if form.attachment.errors %}
-                                <div class="text-danger small">{{ form.attachment.errors }}</div>
-                            {% endif %}
-                            <div class="form-text">Allowed: PDF, PNG, JPG, GIF, DOC, DOCX, TXT, CSV. Max 10 MB.</div>
-                        </div>
-                        <div class="btn-group mb-3" role="group">
-                            <button type="submit" class="btn btn-success flex-grow-1" id="sendBtn">🚀 Send Emails</button>
-                        </div>
-                        <div id="stopBtnContainer" class="d-none mb-3">
-                            <form method="post" action="" id="stopForm" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger w-100">⛔ Kill Switch</button>
-                            </form>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary-custom btn-lg btn-icon flex-grow-1" id="sendBtn">
+                                <i class="bi bi-send-fill"></i>
+                                Send Emails
+                            </button>
+                            <button type="button" class="btn btn-danger-custom btn-lg d-none" id="stopBtn">
+                                <i class="bi bi-stop-fill"></i>
+                                Kill Switch
+                            </button>
                         </div>
                     </form>
 
-                    <!-- Job Progress (shown during sending) -->
-                    <div id="jobProgress" class="d-none mt-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <strong id="jobStatusText">Preparing...</strong>
-                            <span id="jobProgressPercent">0%</span>
+                    <!-- Progress Section -->
+                    <div id="jobProgress" class="d-none mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong id="jobStatusText" class="text-primary">Preparing...</strong>
+                            <span id="jobProgressPercent" class="fw-bold">0%</span>
                         </div>
-                        <div class="progress-bar-custom">
-                            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                        <div class="progress-custom mb-3">
+                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
                         </div>
-                        <div class="row text-center mt-2 small">
-                            <div class="col-3"><div class="fw-bold" id="statSent">0</div><div>Sent</div></div>
-                            <div class="col-3"><div class="fw-bold" id="statFailed">0</div><div>Failed</div></div>
-                            <div class="col-3"><div class="fw-bold" id="statSkipped">0</div><div>Skipped</div></div>
-                            <div class="col-3"><div class="fw-bold" id="statTotal">0</div><div>Total</div></div>
+                        <div class="row g-3">
+                            <div class="col-3"><div class="stat-box"><div class="value text-success" id="statSent">0</div><div class="label">Sent</div></div></div>
+                            <div class="col-3"><div class="stat-box"><div class="value text-danger" id="statFailed">0</div><div class="label">Failed</div></div></div>
+                            <div class="col-3"><div class="stat-box"><div class="value text-warning" id="statSkipped">0</div><div class="label">Skipped</div></div></div>
+                            <div class="col-3"><div class="stat-box"><div class="value text-primary" id="statTotal">0</div><div class="label">Total</div></div></div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="log-container" id="logContainer" aria-live="polite" aria-atomic="true" role="region" aria-label="Status Log">
-                    <h5>Status Log</h5>
-                    <pre id="log"></pre>
+            <!-- Log Console -->
+            <div class="col-lg-5">
+                <div class="form-section d-flex flex-column h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0"><i class="bi bi-terminal me-2"></i>Live Log</h4>
+                        <button class="btn btn-sm btn-outline-secondary" id="clearLogBtn">
+                            <i class="bi bi-trash"></i> Clear
+                        </button>
+                    </div>
+                    <div class="log-console flex-grow-1" id="log" aria-live="polite" aria-label="Email sending log"></div>
+                    <div class="d-flex gap-2 mt-3">
+                        <small class="text-success align-self-center"><i class="bi bi-check-circle"></i> Success</small>
+                        <small class="text-danger align-self-center"><i class="bi bi-x-circle"></i> Error</small>
+                        <small class="text-warning align-self-center"><i class="bi bi-exclamation-triangle"></i> Warning</small>
+                        <small class="text-info align-self-center"><i class="bi bi-info-circle"></i> Info</small>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Recent Jobs History -->
+<!-- Recent Jobs -->
+<div class="section-card animate-in delay-1 mt-4">
+    <div class="section-header">
+        <h2><i class="bi bi-clock-history"></i> Recent Campaigns</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-custom">View Dashboard</a>
+    </div>
+    <div class="section-body p-0">
         {% if recent_jobs %}
-        <div class="card shadow-lg mt-4 job-history">
-            <div class="card-header">
-                <h3 class="mb-0">Recent Jobs</h3>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Sender</th>
-                                <th>Subject</th>
-                                <th>Status</th>
-                                <th>Progress</th>
-                                <th>Sent / Failed / Skipped</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for job in recent_jobs %}
-                            <tr>
-                                <td>#{{ job.id }}</td>
-                                <td>{{ job.sender_email }}</td>
-                                <td>{{ job.subject|truncatechars:40 }}</td>
-                                <td>
-                                    <span class="badge badge-{{ job.status }}">
-                                        {{ job.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="progress-bar-custom" style="width: 120px;">
-                                        <div class="progress-fill" style="width: {{ job.progress_percent }}%"></div>
-                                    </div>
-                                    <small>{{ job.progress_percent }}%</small>
-                                </td>
-                                <td>
-                                    <span class="text-success">{{ job.sent_count }}</span> /
-                                    <span class="text-danger">{{ job.failed_count }}</span> /
-                                    <span class="text-warning">{{ job.skipped_duplicates|add:job.skipped_invalid }}</span>
-                                </td>
-                                <td>{{ job.created_at|date:"M d, H:i" }}</td>
-                                <td>
-                                    {% if job.is_active %}
-                                    <form method="post" action="{% url 'stop_sending' job.id %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Stop this job?')">Stop</button>
-                                    </form>
-                                    {% else %}
-                                    <span class="text-muted small">—</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sender</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Sent / Failed / Skipped</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in recent_jobs %}
+                    <tr>
+                        <td><code>#{{ job.id }}</code></td>
+                        <td>{{ job.sender_email }}</td>
+                        <td>{{ job.subject|truncatechars:40 }}</td>
+                        <td>
+                            <span class="badge badge-{{ job.status }} badge-status">
+                                <i class="bi {% if job.status == 'running' %}bi-play-circle{% elif job.status == 'completed' %}bi-check-circle{% elif job.status == 'failed' %}bi-x-circle{% elif job.status == 'stopped' %}bi-stop-circle{% else %}bi-hourglass{% endif %}"></i>
+                                {{ job.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress-custom" style="width: 120px;">
+                                <div class="progress-bar" style="width: {{ job.progress_percent }}%"></div>
+                            </div>
+                            <small class="ms-2">{{ job.progress_percent }}%</small>
+                        </td>
+                        <td>
+                            <span class="text-success fw-semibold">{{ job.sent_count }}</span> /
+                            <span class="text-danger fw-semibold">{{ job.failed_count }}</span> /
+                            <span class="text-warning fw-semibold">{{ job.skipped_duplicates|add:job.skipped_invalid }}</span>
+                        </td>
+                        <td class="text-muted small">{{ job.created_at|date:"M d, H:i" }}</td>
+                        <td>
+                            {% if job.is_active %}
+                            <form method="post" action="{% url 'stop_sending' job.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger-custom" onclick="return confirm('Stop this campaign?')">
+                                    <i class="bi bi-stop-fill"></i> Stop
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-send"></i>
+            <h4>No campaigns yet</h4>
+            <p class="text-muted">Send your first email campaign to see it here</p>
         </div>
         {% endif %}
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        const logEl = document.getElementById('log');
-        const logContainer = document.getElementById('logContainer');
-        const form = document.getElementById('emailForm');
-        const sendBtn = document.getElementById('sendBtn');
-        const stopBtnContainer = document.getElementById('stopBtnContainer');
-        const stopForm = document.getElementById('stopForm');
-        const jobProgress = document.getElementById('jobProgress');
-        const jobStatusText = document.getElementById('jobStatusText');
-        const jobProgressPercent = document.getElementById('jobProgressPercent');
-        const progressBar = document.getElementById('progressBar');
-        const statSent = document.getElementById('statSent');
-        const statFailed = document.getElementById('statFailed');
-        const statSkipped = document.getElementById('statSkipped');
-        const statTotal = document.getElementById('statTotal');
+{% block extra_js %}
+<script>
+    const logEl = document.getElementById('log');
+    const form = document.getElementById('emailForm');
+    const sendBtn = document.getElementById('sendBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const jobProgress = document.getElementById('jobProgress');
+    const jobStatusText = document.getElementById('jobStatusText');
+    const jobProgressPercent = document.getElementById('jobProgressPercent');
+    const progressBar = document.getElementById('progressBar');
+    const statSent = document.getElementById('statSent');
+    const statFailed = document.getElementById('statFailed');
+    const statSkipped = document.getElementById('statSkipped');
+    const statTotal = document.getElementById('statTotal');
+    const clearLogBtn = document.getElementById('clearLogBtn');
 
-        let currentJobId = null;
-        let statusPollInterval = null;
+    let currentJobId = null;
+    let statusPollInterval = null;
 
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+    function addLogLine(text, type = 'info') {
+        const line = document.createElement('div');
+        line.className = `log-line ${type}`;
+        line.textContent = text;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    }
 
-            logContainer.classList.add('active');
-            logEl.textContent = '';
+    function clearLog() {
+        logEl.innerHTML = '';
+    }
 
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
-            stopBtnContainer.classList.remove('d-none');
-            jobProgress.classList.remove('d-none');
+    clearLogBtn.addEventListener('click', clearLog);
 
-            const formData = new FormData(form);
-            fetch("{% url 'send_emails' %}", {
-                method: "POST",
-                body: formData
-            })
-                .then(response => {
-                    currentJobId = response.headers.get('X-Job-ID');
-                    if (currentJobId) {
-                        stopForm.action = "{% url 'stop_sending' 0 %}".replace('0', currentJobId);
-                        startStatusPolling(currentJobId);
-                    }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    const read = () => {
-                        reader.read().then(({ done, value }) => {
-                            if (done) {
-                                sendBtn.disabled = false;
-                                sendBtn.innerHTML = '🚀 Send Emails';
-                                stopBtnContainer.classList.add('d-none');
-                                stopStatusPolling();
-                                return;
-                            }
-                            logEl.textContent += decoder.decode(value);
-                            logEl.scrollTop = logEl.scrollHeight;
-                            read();
-                        });
-                    };
-                    read();
-                })
-                .catch(err => {
-                    logEl.textContent = 'Error sending emails: ' + err.message;
-                    sendBtn.disabled = false;
-                    sendBtn.innerHTML = '🚀 Send Emails';
-                    stopBtnContainer.classList.add('d-none');
-                    jobProgress.classList.add('d-none');
-                });
-        });
+        clearLog();
+        addLogLine('Starting campaign...', 'info');
 
-        function startStatusPolling(jobId) {
-            statusPollInterval = setInterval(() => {
-                fetch("{% url 'job_status' 0 %}".replace('0', jobId))
-                    .then(res => res.json())
-                    .then(data => {
-                        jobStatusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-                        jobProgressPercent.textContent = data.progress_percent + '%';
-                        progressBar.style.width = data.progress_percent + '%';
-                        statSent.textContent = data.sent_count;
-                        statFailed.textContent = data.failed_count;
-                        statSkipped.textContent = data.skipped_duplicates + data.skipped_invalid;
-                        statTotal.textContent = data.total_recipients;
+        sendBtn.classList.add('loading');
+        sendBtn.disabled = true;
+        stopBtn.classList.remove('d-none');
+        jobProgress.classList.remove('d-none');
 
-                        if (!data.is_active) {
-                            stopStatusPolling();
+        const formData = new FormData(form);
+        fetch("{% url 'send_emails' %}", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => {
+                currentJobId = response.headers.get('X-Job-ID');
+                if (currentJobId) {
+                    stopBtn.onclick = () => stopJob(currentJobId);
+                    startStatusPolling(currentJobId);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                const read = () => {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            sendBtn.classList.remove('loading');
                             sendBtn.disabled = false;
-                            sendBtn.innerHTML = '🚀 Send Emails';
-                            stopBtnContainer.classList.add('d-none');
-                            // Reload page to update job history
-                            setTimeout(() => window.location.reload(), 1000);
+                            stopBtn.classList.add('d-none');
+                            stopStatusPolling();
+                            addLogLine('Campaign finished.', 'info');
+                            setTimeout(() => window.location.reload(), 1500);
+                            return;
                         }
-                    })
-                    .catch(err => console.error('Status poll error:', err));
-            }, 2000);
+                        const chunk = decoder.decode(value);
+                        chunk.split('\n').forEach(line => {
+                            if (line.trim()) {
+                                let type = 'info';
+                                if (line.includes('✅') || line.includes('Sent to')) type = 'success';
+                                else if (line.includes('❌') || line.includes('Failed') || line.includes('Error')) type = 'error';
+                                else if (line.includes('⚠️') || line.includes('Skipping') || line.includes('Stopped')) type = 'warning';
+                                addLogLine(line.trim(), type);
+                            }
+                        });
+                        read();
+                    });
+                };
+                read();
+            })
+            .catch(err => {
+                addLogLine('Error: ' + err.message, 'error');
+                sendBtn.classList.remove('loading');
+                sendBtn.disabled = false;
+                stopBtn.classList.add('d-none');
+                jobProgress.classList.add('d-none');
+            });
+    });
+
+    function stopJob(jobId) {
+        if (!confirm('Are you sure you want to stop this campaign?')) return;
+        fetch("{% url 'stop_sending' 0 %}".replace('0', jobId), { method: 'POST' })
+            .then(() => {
+                addLogLine('Stop signal sent...', 'warning');
+            });
+    }
+
+    function startStatusPolling(jobId) {
+        statusPollInterval = setInterval(() => {
+            fetch("{% url 'job_status' 0 %}".replace('0', jobId))
+                .then(res => res.json())
+                .then(data => {
+                    jobStatusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    jobProgressPercent.textContent = data.progress_percent + '%';
+                    progressBar.style.width = data.progress_percent + '%';
+                    statSent.textContent = data.sent_count;
+                    statFailed.textContent = data.failed_count;
+                    statSkipped.textContent = data.skipped_duplicates + data.skipped_invalid;
+                    statTotal.textContent = data.total_recipients;
+
+                    if (!data.is_active) {
+                        stopStatusPolling();
+                        sendBtn.classList.remove('loading');
+                        sendBtn.disabled = false;
+                        stopBtn.classList.add('d-none');
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                })
+                .catch(err => console.error('Status poll error:', err));
+        }, 2000);
+    }
+
+    function stopStatusPolling() {
+        if (statusPollInterval) {
+            clearInterval(statusPollInterval);
+            statusPollInterval = null;
         }
-
-        function stopStatusPolling() {
-            if (statusPollInterval) {
-                clearInterval(statusPollInterval);
-                statusPollInterval = null;
-            }
-        }
-    </script>
-
-</body>
-
-</html>
+    }
+</script>
+{% endblock %}

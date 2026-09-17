@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from django.core.wsgi import get_wsgi_application
+
 # Add project root to Python path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -15,9 +17,7 @@ sys.path.append(str(BASE_DIR))
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-# Import Django WSGI application - this is what Vercel calls
-from django.core.wsgi import get_wsgi_application
-
+# Get WSGI application
 app = get_wsgi_application()
 
 # Export for Vercel (some versions expect 'app', others 'application')
