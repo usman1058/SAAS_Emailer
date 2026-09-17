@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import *
+from . import views
 
 urlpatterns = [
-    path('', email_panel, name='email_panel'),
-    path('send_emails/', send_emails, name='send_emails'),
-    path('stop/', stop_sending, name='stop_sending'),
+    path('', views.email_panel, name='email_panel'),
+    path('send_emails/', views.send_emails, name='send_emails'),
+    path('stop/<int:job_id>/', views.stop_sending, name='stop_sending'),
+    path('job_status/<int:job_id>/', views.job_status, name='job_status'),
 ]

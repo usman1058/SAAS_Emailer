@@ -1,8 +1,38 @@
-Django>=3.2,<5.0
-pandas>=1.1
-openpyxl>=3.0
-# Optional for Excel handling if working with older xls
-xlrd>=2.0
+# Core Framework
+Django==5.2.1
 
-# If you want HTML email templating later
-jinja2
+# Data Processing
+pandas==3.0.5
+openpyxl==3.1.5
+xlrd==2.0.1
+
+# Templating
+jinja2==3.1.4
+
+# Phone Number Validation (for leads app)
+phonenumbers==8.13.48
+
+# Environment Configuration
+python-dotenv==1.0.1
+dj-database-url==2.2.0
+
+# Production Server
+gunicorn==23.0.0
+
+# Static Files
+whitenoise==6.8.2
+
+# Database (PostgreSQL for production)
+psycopg2-binary==2.9.9
+
+# Redis (for kill switch, caching, Celery)
+redis==5.2.1
+
+# Async Tasks
+celery==5.4.0
+
+# Rate Limiting
+django-ratelimit==4.1.0
+
+# Security Headers
+django-csp==3.8

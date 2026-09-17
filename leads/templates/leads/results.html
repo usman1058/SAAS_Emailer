@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Results - {{ job.city }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-tabs .btn { margin: 0 4px 8px 0; }
+    .filter-tabs .btn.active { background: #1a1a1a; border-color: #1a1a1a; color: white; }
+    .leads-table tr[data-has-website="False"] { background: #fff6f6; }
+    .leads-table tr[data-is-priority="True"] { background: #fff3cd; }
+    .wa-link { text-decoration: none; }
+    .wa-link:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><span>📍</span> {{ job.city }}{% if job.country %}, {{ job.country }}{% endif %}</h3>
+        <div>
+            <a href="{% url 'leads:search' %}" class="btn btn-sm btn-secondary">← New Search</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card bg-light border-0">
+                    <div class="card-body text-center">
+                        <div class="display-6 fw-bold text-primary">{{ job.total_found }}</div>
+                        <div class="text-muted small">Total Found</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0">
+                    <div class="card-body text-center">
+                        <div class="display-6 fw-bold text-danger">{{ job.no_website_count }}</div>
+                        <div class="text-muted small">No Website</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0">
+                    <div class="card-body text-center">
+                        <div class="display-6 fw-bold text-warning">{{ job.priority_count }}</div>
+                        <div class="text-muted small">Priority Leads</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0">
+                    <div class="card-body text-center">
+                        <span class="badge badge-{{ job.status }} fs-6">{{ job.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-3 filter-tabs">
+            <a href="?website=" class="btn btn-sm btn-outline-primary {% if not website_filter %}active{% endif %}">All ({{ job.total_found }})</a>
+            <a href="?website=no" class="btn btn-sm btn-outline-danger {% if website_filter == 'no' %}active{% endif %}">No Website ({{ job.no_website_count }})</a>
+            <a href="?website=yes" class="btn btn-sm btn-outline-success {% if website_filter == 'yes' %}active{% endif %}">Has Website ({{ job.total_found|add:"-"|add:job.no_website_count }})</a>
+            <a href="?whatsapp=mobile" class="btn btn-sm btn-outline-warning {% if whatsapp_filter == 'mobile' %}active{% endif %}">Mobile Only ({{ job.priority_count }})</a>
+        </div>
+
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover leads-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Address</th>
+                        <th>Phone</th>
+                        <th>Website</th>
+                        <th>WhatsApp</th>
+                        <th>OSM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in page_obj %}
+                    <tr data-has-website="{{ lead.has_website|yesno:'True,False' }}" data-is-priority="{{ lead.is_priority|yesno:'True,False' }}">
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td class="fw-bold">{{ lead.name }}</td>
+                        <td><span class="badge bg-secondary">{{ lead.category }}</span></td>
+                        <td class="text-truncate" style="max-width: 200px;">{{ lead.address|default:"Not mapped" }}</td>
+                        <td>{{ lead.phone|default:"—" }}</td>
+                        <td>
+                            {% if lead.has_website %}
+                                <a href="{{ lead.website }}" target="_blank" class="text-decoration-none">
+                                    <i class="bi bi-globe"></i> {{ lead.website|truncatechars:30 }}
+                                </a>
+                            {% else %}
+                                <span class="text-danger">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if lead.whatsapp_status|startswith:'Mobile' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ lead.whatsapp_status }}
+                            </span>
+                            {% if lead.whatsapp_check_link %}
+                                <a href="{{ lead.whatsapp_check_link }}" target="_blank" class="wa-link ms-1" title="Check on WhatsApp">
+                                    <i class="bi bi-whatsapp"></i> check
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ lead.osm_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-map"></i> OSM
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if website_filter %}&website={{ website_filter }}{% endif %}{% if whatsapp_filter %}&whatsapp={{ whatsapp_filter }}{% endif %}">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if website_filter %}&website={{ website_filter }}{% endif %}{% if whatsapp_filter %}&whatsapp={{ whatsapp_filter }}{% endif %}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if website_filter %}&website={{ website_filter }}{% endif %}{% if whatsapp_filter %}&whatsapp={{ whatsapp_filter }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if website_filter %}&website={{ website_filter }}{% endif %}{% if whatsapp_filter %}&whatsapp={{ whatsapp_filter }}{% endif %}">Last &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <div class="display-4 text-muted">🔍</div>
+            <h4 class="mt-3">No leads found</h4>
+            <p class="text-muted">Try adjusting your filters or search criteria.</p>
+        </div>
+        {% endif %}
+
+        <!-- Export Buttons -->
+        {% if job.status == 'completed' and job.total_found > 0 %}
+        <div class="mt-4 pt-4 border-top">
+            <h5>Export Results</h5>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <a href="{% url 'leads:export' job.id 'csv' %}" class="btn btn-outline-success">
+                    <i class="bi bi-filetype-csv"></i> All (CSV)
+                </a>
+                <a href="{% url 'leads:export' job.id 'csv_no_website' %}" class="btn btn-outline-danger">
+                    <i class="bi bi-filetype-csv"></i> No Website (CSV)
+                </a>
+                <a href="{% url 'leads:export' job.id 'csv_priority' %}" class="btn btn-outline-warning">
+                    <i class="bi bi-filetype-csv"></i> Priority (CSV)
+                </a>
+                <a href="{% url 'leads:export' job.id 'xlsx' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-filetype-xlsx"></i> Excel (All Sheets)
+                </a>
+                <a href="{% url 'leads:export' job.id 'html' %}" class="btn btn-outline-info">
+                    <i class="bi bi-filetype-html"></i> HTML Report
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh for running jobs
+    {% if job.status == 'running' %}
+    setInterval(function() {
+        fetch("{% url 'leads:job_status' job.id %}")
+            .then(res => res.json())
+            .then(data => {
+                if (!data.is_active) {
+                    window.location.reload();
+                }
+            });
+    }, 3000);
+    {% endif %}
+</script>
+{% endblock %}

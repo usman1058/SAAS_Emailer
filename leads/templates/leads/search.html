@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Lead Finder - Find Businesses Without Websites{% endblock %}
+
+{% block content %}
+<div class="container" role="main" aria-label="Lead Finder">
+    <div class="card shadow-lg mb-4">
+        <div class="card-header">
+            <h3><span>🔍</span> Find Local Business Leads</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'leads:search_submit' %}" id="searchForm">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Leeds" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="country" class="form-label">Country (optional)</label>
+                        <input type="text" class="form-control" id="country" name="country" placeholder="e.g., UK, Germany, USA">
+                        <div class="form-text">Helps with phone number classification and geocoding accuracy.</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="categories" class="form-label">Categories <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="categories" name="categories" rows="3" placeholder="plumber, electrician, cafe, hair salon" required></textarea>
+                    <div class="form-text">
+                        Comma-separated list. Examples: <code>plumber</code>, <code>hair salon</code>, <code>cafe</code>, <code>restaurant</code>, <code>dentist</code>, <code>lawyer</code>, <code>gym</code>, <code>car repair</code>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">🔍 Search for Leads</button>
+            </form>
+        </div>
+    </div>
+
+    {% if recent_jobs %}
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h3 class="mb-0">Recent Searches</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Location</th>
+                            <th>Categories</th>
+                            <th>Status</th>
+                            <th>Found</th>
+                            <th>No Website</th>
+                            <th>Priority</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in recent_jobs %}
+                        <tr>
+                            <td>#{{ job.id }}</td>
+                            <td>{{ job.city }}{% if job.country %}, {{ job.country }}{% endif %}</td>
+                            <td>{{ job.categories|join:", " }}</td>
+                            <td>
+                                <span class="badge badge-{{ job.status }}">
+                                    {{ job.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ job.total_found }}</td>
+                            <td>{{ job.no_website_count }}</td>
+                            <td>{{ job.priority_count }}</td>
+                            <td>{{ job.created_at|date:"M d, H:i" }}</td>
+                            <td>
+                                {% if job.status == 'completed' %}
+                                    <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-primary">View Results</a>
+                                {% elif job.status == 'running' %}
+                                    <a href="{% url 'leads:results' job.id %}" class="btn btn-sm btn-info">View Progress</a>
+                                {% elif job.status == 'pending' %}
+                                    <a href="{% url 'leads:search_run' job.id %}" class="btn btn-sm btn-success">Run Search</a>
+                                {% else %}
+                                    <span class="text-muted">Failed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

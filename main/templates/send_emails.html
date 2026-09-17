@@ -8,7 +8,6 @@
     <title>Email Sender Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
-        /* Background white now */
         body {
             background: #fff;
             min-height: 100vh;
@@ -19,9 +18,8 @@
         }
 
         .container {
-            max-width: 900px;
-            /* wider to fit side-by-side */
-            margin: 60px auto 60px;
+            max-width: 1100px;
+            margin: 40px auto 60px;
             animation: fadeInUp 1s ease forwards;
         }
 
@@ -34,7 +32,6 @@
 
         .card-header {
             background-color: #f68a0a;
-            /* changed to orange */
             color: #fff;
             font-weight: 700;
             font-size: 1.6rem;
@@ -63,6 +60,7 @@
             display: flex;
             gap: 24px;
             position: relative;
+            padding: 24px;
         }
 
         .form-container {
@@ -86,13 +84,11 @@
         label.form-label {
             font-weight: 600;
             color: #f68a0a;
-            /* orange label */
         }
 
         .form-control {
             border-radius: 10px;
             border: 2px solid #f68a0a;
-            /* orange border */
             padding: 10px 14px;
             font-size: 1rem;
             transition: border-color 0.4s ease, box-shadow 0.4s ease;
@@ -100,13 +96,13 @@
 
         .form-control:focus {
             border-color: #c76a00;
-            /* darker orange */
             box-shadow: 0 0 12px rgba(246, 138, 10, 0.7);
             outline: none;
         }
 
         button.btn-success,
-        button.btn-danger {
+        button.btn-danger,
+        button.btn-secondary {
             font-weight: 700;
             padding: 12px 26px;
             border-radius: 10px;
@@ -117,14 +113,12 @@
 
         button.btn-success {
             background-color: #f68a0a;
-            /* orange button */
             border: none;
             color: white;
         }
 
         button.btn-success:hover {
             background-color: #c76a00;
-            /* darker orange */
             transform: scale(1.06);
             box-shadow: 0 12px 24px rgba(199, 106, 0, 0.6);
             cursor: pointer;
@@ -132,7 +126,6 @@
 
         button.btn-danger {
             background-color: #dc3545;
-            /* keep red for kill switch */
             border: none;
             color: white;
         }
@@ -141,6 +134,18 @@
             background-color: #b02a37;
             transform: scale(1.06);
             box-shadow: 0 12px 24px rgba(176, 42, 55, 0.6);
+            cursor: pointer;
+        }
+
+        button.btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            color: white;
+        }
+
+        button.btn-secondary:hover {
+            background-color: #5a6268;
+            transform: scale(1.06);
             cursor: pointer;
         }
 
@@ -165,11 +170,42 @@
 
         h5 {
             color: #f68a0a;
-            /* orange heading */
             font-weight: 700;
             margin-bottom: 18px;
             letter-spacing: 1.1px;
         }
+
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+
+        .progress-bar-custom .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f68a0a, #ffa500);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .job-history {
+            margin-top: 24px;
+        }
+
+        .job-history table {
+            font-size: 0.85rem;
+        }
+
+        .job-history th {
+            background: #f8f9fa;
+        }
+
+        .badge-running { background: #0dcaf0; color: #000; }
+        .badge-completed { background: #198754; }
+        .badge-stopped { background: #ffc107; color: #000; }
+        .badge-failed { background: #dc3545; }
+        .badge-pending { background: #6c757d; }
 
         @media (max-width: 900px) {
             .card-body {
@@ -184,30 +220,17 @@
             }
         }
 
-        /* Animation */
         @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-8px);
-            }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+
+        .spinner-border-sm { width: 1rem; height: 1rem; }
     </style>
 </head>
 
@@ -228,57 +251,176 @@
                         <div class="mb-3">
                             <label for="id_sender_email" class="form-label">Sender Email</label>
                             {{ form.sender_email|add_class:"form-control" }}
+                            {% if form.sender_email.errors %}
+                                <div class="text-danger small">{{ form.sender_email.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="mb-3">
                             <label for="id_sender_password" class="form-label">Sender Password</label>
                             {{ form.sender_password|add_class:"form-control" }}
+                            {% if form.sender_password.errors %}
+                                <div class="text-danger small">{{ form.sender_password.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="mb-3">
                             <label for="id_subject" class="form-label">Subject</label>
                             {{ form.subject|add_class:"form-control" }}
+                            {% if form.subject.errors %}
+                                <div class="text-danger small">{{ form.subject.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="mb-3">
                             <label for="id_message" class="form-label">Message</label>
                             {{ form.message|add_class:"form-control" }}
+                            {% if form.message.errors %}
+                                <div class="text-danger small">{{ form.message.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Use <code>{{name}}</code> placeholder for personalization (e.g., "Hi {{name}}, ...")</div>
                         </div>
                         <div class="mb-3">
                             <label for="id_excel_file" class="form-label">Excel File (with Email column)</label>
                             {{ form.excel_file|add_class:"form-control" }}
+                            {% if form.excel_file.errors %}
+                                <div class="text-danger small">{{ form.excel_file.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="mb-3">
                             <label for="id_attachment" class="form-label">Attachment (optional)</label>
                             {{ form.attachment|add_class:"form-control" }}
+                            {% if form.attachment.errors %}
+                                <div class="text-danger small">{{ form.attachment.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Allowed: PDF, PNG, JPG, GIF, DOC, DOCX, TXT, CSV. Max 10 MB.</div>
                         </div>
-                        <div class="btn-group mb-3">
-                            <button type="submit" class="btn btn-success flex-grow-1">🚀 Send Emails</button>
-                            <form method="post" action="{% url 'stop_sending' %}" class="ms-3 flex-grow-1 d-inline">
+                        <div class="btn-group mb-3" role="group">
+                            <button type="submit" class="btn btn-success flex-grow-1" id="sendBtn">🚀 Send Emails</button>
+                        </div>
+                        <div id="stopBtnContainer" class="d-none mb-3">
+                            <form method="post" action="" id="stopForm" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger w-100">⛔ Kill Switch</button>
                             </form>
                         </div>
                     </form>
+
+                    <!-- Job Progress (shown during sending) -->
+                    <div id="jobProgress" class="d-none mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong id="jobStatusText">Preparing...</strong>
+                            <span id="jobProgressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                        </div>
+                        <div class="row text-center mt-2 small">
+                            <div class="col-3"><div class="fw-bold" id="statSent">0</div><div>Sent</div></div>
+                            <div class="col-3"><div class="fw-bold" id="statFailed">0</div><div>Failed</div></div>
+                            <div class="col-3"><div class="fw-bold" id="statSkipped">0</div><div>Skipped</div></div>
+                            <div class="col-3"><div class="fw-bold" id="statTotal">0</div><div>Total</div></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="log-container" id="logContainer" aria-live="polite" aria-atomic="true" role="region"
-                    aria-label="Status Log">
+                <div class="log-container" id="logContainer" aria-live="polite" aria-atomic="true" role="region" aria-label="Status Log">
                     <h5>Status Log</h5>
                     <pre id="log"></pre>
                 </div>
             </div>
         </div>
+
+        <!-- Recent Jobs History -->
+        {% if recent_jobs %}
+        <div class="card shadow-lg mt-4 job-history">
+            <div class="card-header">
+                <h3 class="mb-0">Recent Jobs</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Sender</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Sent / Failed / Skipped</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in recent_jobs %}
+                            <tr>
+                                <td>#{{ job.id }}</td>
+                                <td>{{ job.sender_email }}</td>
+                                <td>{{ job.subject|truncatechars:40 }}</td>
+                                <td>
+                                    <span class="badge badge-{{ job.status }}">
+                                        {{ job.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress-bar-custom" style="width: 120px;">
+                                        <div class="progress-fill" style="width: {{ job.progress_percent }}%"></div>
+                                    </div>
+                                    <small>{{ job.progress_percent }}%</small>
+                                </td>
+                                <td>
+                                    <span class="text-success">{{ job.sent_count }}</span> /
+                                    <span class="text-danger">{{ job.failed_count }}</span> /
+                                    <span class="text-warning">{{ job.skipped_duplicates|add:job.skipped_invalid }}</span>
+                                </td>
+                                <td>{{ job.created_at|date:"M d, H:i" }}</td>
+                                <td>
+                                    {% if job.is_active %}
+                                    <form method="post" action="{% url 'stop_sending' job.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Stop this job?')">Stop</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <script>
         const logEl = document.getElementById('log');
         const logContainer = document.getElementById('logContainer');
         const form = document.getElementById('emailForm');
+        const sendBtn = document.getElementById('sendBtn');
+        const stopBtnContainer = document.getElementById('stopBtnContainer');
+        const stopForm = document.getElementById('stopForm');
+        const jobProgress = document.getElementById('jobProgress');
+        const jobStatusText = document.getElementById('jobStatusText');
+        const jobProgressPercent = document.getElementById('jobProgressPercent');
+        const progressBar = document.getElementById('progressBar');
+        const statSent = document.getElementById('statSent');
+        const statFailed = document.getElementById('statFailed');
+        const statSkipped = document.getElementById('statSkipped');
+        const statTotal = document.getElementById('statTotal');
+
+        let currentJobId = null;
+        let statusPollInterval = null;
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Reveal the log area
             logContainer.classList.add('active');
-            logEl.textContent = '';  // Clear previous logs
+            logEl.textContent = '';
+
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+            stopBtnContainer.classList.remove('d-none');
+            jobProgress.classList.remove('d-none');
 
             const formData = new FormData(form);
             fetch("{% url 'send_emails' %}", {
@@ -286,17 +428,23 @@
                 body: formData
             })
                 .then(response => {
-
-
-
-
-
+                    currentJobId = response.headers.get('X-Job-ID');
+                    if (currentJobId) {
+                        stopForm.action = "{% url 'stop_sending' 0 %}".replace('0', currentJobId);
+                        startStatusPolling(currentJobId);
+                    }
 
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     const read = () => {
                         reader.read().then(({ done, value }) => {
-                            if (done) return;
+                            if (done) {
+                                sendBtn.disabled = false;
+                                sendBtn.innerHTML = '🚀 Send Emails';
+                                stopBtnContainer.classList.add('d-none');
+                                stopStatusPolling();
+                                return;
+                            }
                             logEl.textContent += decoder.decode(value);
                             logEl.scrollTop = logEl.scrollHeight;
                             read();
@@ -306,10 +454,47 @@
                 })
                 .catch(err => {
                     logEl.textContent = 'Error sending emails: ' + err.message;
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '🚀 Send Emails';
+                    stopBtnContainer.classList.add('d-none');
+                    jobProgress.classList.add('d-none');
                 });
         });
+
+        function startStatusPolling(jobId) {
+            statusPollInterval = setInterval(() => {
+                fetch("{% url 'job_status' 0 %}".replace('0', jobId))
+                    .then(res => res.json())
+                    .then(data => {
+                        jobStatusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                        jobProgressPercent.textContent = data.progress_percent + '%';
+                        progressBar.style.width = data.progress_percent + '%';
+                        statSent.textContent = data.sent_count;
+                        statFailed.textContent = data.failed_count;
+                        statSkipped.textContent = data.skipped_duplicates + data.skipped_invalid;
+                        statTotal.textContent = data.total_recipients;
+
+                        if (!data.is_active) {
+                            stopStatusPolling();
+                            sendBtn.disabled = false;
+                            sendBtn.innerHTML = '🚀 Send Emails';
+                            stopBtnContainer.classList.add('d-none');
+                            // Reload page to update job history
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    })
+                    .catch(err => console.error('Status poll error:', err));
+            }, 2000);
+        }
+
+        function stopStatusPolling() {
+            if (statusPollInterval) {
+                clearInterval(statusPollInterval);
+                statusPollInterval = null;
+            }
+        }
     </script>
 
 </body>
 
-</html> `
+</html>
