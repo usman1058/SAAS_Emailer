@@ -22,6 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Detect Vercel deployment
 IS_VERCEL = os.environ.get('VERCEL', '').lower() == '1'
 
+# Get Vercel deployment URL if available
+VERCEL_URL = os.environ.get('VERCEL_URL', '')
+VERCEL_BRANCH_URL = os.environ.get('VERCEL_BRANCH_URL', '')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -30,14 +34,36 @@ IS_VERCEL = os.environ.get('VERCEL', '').lower() == '1'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
+# Force DEBUG=False on Vercel unless explicitly overridden
+if IS_VERCEL:
+    DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
+else:
+    DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 # ALLOWED_HOSTS should be hostnames only, not URLs
 # Example: ALLOWED_HOSTS=localhost,127.0.0.1,saas-emailer.vercel.app
-ALLOWED_HOSTS = [
-    host.strip() for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-    if host.strip()
-]
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# Auto-add Vercel domains if deployed on Vercel
+if IS_VERCEL:
+    # Add Vercel deployment URL (e.g., saas-emailer.vercel.app)
+    if VERCEL_URL:
+        # Remove protocol if present
+        vercel_domain = VERCEL_URL.replace('https://', '').replace('http://', '').rstrip('/')
+        if vercel_domain not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(vercel_domain)
+    # Add branch deployment URL (e.g., saas-emailer-git-main-usman1058.vercel.app)
+    if VERCEL_BRANCH_URL:
+        branch_domain = VERCEL_BRANCH_URL.replace('https://', '').replace('http://', '').rstrip('/')
+        if branch_domain not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(branch_domain)
+    # Also add wildcard for vercel.app subdomains
+    if '.vercel.app' not in str(ALLOWED_HOSTS):
+        ALLOWED_HOSTS.append('.vercel.app')
 
 
 # Application definition
@@ -208,6 +234,8 @@ if not DEBUG:
     CSRF_COOKIE_HTTPONLY = True
     SESSION_COOKIE_HTTPONLY = True
     X_FRAME_OPTIONS = 'DENY'
+    # Trust Vercel's proxy headers for SSL
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Content Security Policy
