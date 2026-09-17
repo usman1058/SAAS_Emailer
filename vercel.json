@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput",
+  "buildCommand": "pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput",
   "devCommand": "python manage.py runserver",
   "installCommand": "pip install -r requirements.txt",
   "framework": "django",
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30
-    }
-  },
   "routes": [
     {
       "src": "/static/(.*)",
@@ -22,19 +17,5 @@
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
-  ],
-  "env": {
-    "DEBUG": "False",
-    "SECRET_KEY": "@secret_key",
-    "ALLOWED_HOSTS": "@allowed_hosts",
-    "DATABASE_URL": "@database_url",
-    "REDIS_URL": "@redis_url",
-    "EMAIL_BACKEND": "@email_backend",
-    "EMAIL_HOST": "@email_host",
-    "EMAIL_PORT": "@email_port",
-    "EMAIL_USE_TLS": "@email_use_tls",
-    "EMAIL_HOST_USER": "@email_host_user",
-    "EMAIL_HOST_PASSWORD": "@email_host_password",
-    "OSM_CONTACT_EMAIL": "@osm_contact_email"
-  }
+  ]
 }

@@ -1,5 +1,8 @@
 """
 Vercel Serverless Function Entry Point for Django
+
+This file is the entry point for Vercel's Python serverless function.
+Vercel automatically detects and uses this as the WSGI application.
 """
 import os
 import sys
@@ -12,12 +15,11 @@ sys.path.append(str(BASE_DIR))
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-# Import Django WSGI application
+# Import Django WSGI application - this is what Vercel calls
 from django.core.wsgi import get_wsgi_application
 
-application = get_wsgi_application()
+app = get_wsgi_application()
 
-# Vercel handler
-def handler(request, context):
-    """Vercel serverless function handler."""
-    return application(request.environ, lambda status, headers: None)
+# Export for Vercel (some versions expect 'app', others 'application')
+application = app
+handler = app
